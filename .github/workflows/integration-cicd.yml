@@ -11,7 +11,7 @@ permissions:
 
 env:
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/devops-essentials
-  CLOUD_RUN_SERVICE_DEV: devops-essentials-int
+  CLOUD_RUN_SERVICE_INT: devops-essentials-int
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GCP_REGION: europe-west1
 

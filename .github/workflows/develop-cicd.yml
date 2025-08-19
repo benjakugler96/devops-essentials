@@ -2,6 +2,7 @@ name: Develop CI
 on:
   push:
     branches: [develop]
+  workflow_dispatch: # 👈 manual trigger
 
 permissions:
   contents: read

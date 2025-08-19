@@ -4,6 +4,7 @@ on:
     branches: [integration]
   push:
     branches: [integration]
+  workflow_dispatch: # 👈 manual trigger
 
 permissions:
   contents: write

@@ -27,6 +27,8 @@ jobs:
     name: Release-it (minor) + Build & Push (integration)
     needs: verify
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -101,7 +103,10 @@ jobs:
           flags: --allow-unauthenticated
       - name: Read version (safety)
         id: v
-        run: echo "v=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
+        shell: bash
+        run: |
+          VERSION=$(jq -r .version package.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Re-deploy with exact version (if needed)
         if: always()

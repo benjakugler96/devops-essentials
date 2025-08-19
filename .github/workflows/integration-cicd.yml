@@ -115,7 +115,7 @@ jobs:
           service: ${{ env.CLOUD_RUN_SERVICE_INT }}
           project_id: ${{ env.GCP_PROJECT_ID }}
           region: ${{ env.GCP_REGION }}
-          image: docker.io/${{ env.IMAGE_NAME }}:v${{ steps.v.outputs.v }}
+          image: docker.io/${{ env.IMAGE_NAME }}:v${{ steps.v.outputs.version }}
           flags: --allow-unauthenticated
 
       - name: Print INT URL

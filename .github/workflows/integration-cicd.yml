@@ -1,4 +1,4 @@
-name: Develop CI
+name: Integration CI
 on:
   pull_request:
     branches: [integration]

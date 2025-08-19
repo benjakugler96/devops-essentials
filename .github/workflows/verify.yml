@@ -1,0 +1,32 @@
+name: Verify
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        required: false
+        type: string
+        default: '20'
+    secrets: {} # or `secrets: inherit` in callers
+
+jobs:
+  verify:
+    name: Lint + Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint -- --max-warnings=0
+
+      - name: Test
+        run: npm test -- --passWithNoTests --ci

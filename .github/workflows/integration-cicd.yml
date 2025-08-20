@@ -4,14 +4,14 @@ on:
     branches: [integration]
   push:
     branches: [integration]
-  workflow_dispatch: # 👈 manual trigger
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 env:
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/devops-essentials
-  CLOUD_RUN_SERVICE_DEV: devops-essentials-int
+  CLOUD_RUN_SERVICE_INT: devops-essentials-int
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GCP_REGION: europe-west1
 
@@ -27,6 +27,12 @@ jobs:
     name: Release-it (minor) + Build & Push (integration)
     needs: verify
     runs-on: ubuntu-latest
+
+    # Expose version + digest to the deploy job
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      digest: ${{ steps.build.outputs.digest }}
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -50,6 +56,7 @@ jobs:
       - name: Run release-it (minor)
         run: npx release-it minor --ci
 
+      # Read version AFTER release-it (ESM-safe)
       - name: Read version after release-it
         id: version
         run: echo "version=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
@@ -64,6 +71,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build & Push (v${{ steps.version.outputs.version }})
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -78,10 +86,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Ensure version/digest present
+        shell: bash
+        run: |
+          echo "Version from build job: '${{ needs.release_build_push_integration.outputs.version }}'"
+          echo "Digest from build job:  '${{ needs.release_build_push_integration.outputs.digest }}'"
+          if [ -z "${{ needs.release_build_push_integration.outputs.version }}" ] || [ -z "${{ needs.release_build_push_integration.outputs.digest }}" ]; then
+            echo "::error::Missing version or digest from previous job."; exit 1
+          fi
+
       - name: Auth to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # Optional: preflight pull for visibility
+      - name: Echo & Pull image
+        run: |
+          echo "docker.io/${{ env.IMAGE_NAME }}@${{ needs.release_build_push_integration.outputs.digest }}"
+          docker pull docker.io/${{ env.IMAGE_NAME }}@${{ needs.release_build_push_integration.outputs.digest }}
 
       - name: Deploy (INT service)
         id: deploy
@@ -90,8 +113,7 @@ jobs:
           service: ${{ env.CLOUD_RUN_SERVICE_INT }}
           project_id: ${{ env.GCP_PROJECT_ID }}
           region: ${{ env.GCP_REGION }}
-          image: docker.io/${{ env.IMAGE_NAME }}:v${{ needs.release_build_push_integration.outputs.version || '' }}
-          # We'll pass the version by reading package.json again to be safe
+          image: docker.io/${{ env.IMAGE_NAME }}@${{ needs.release_build_push_integration.outputs.digest }}
           flags: --allow-unauthenticated
 
       - name: Print INT URL

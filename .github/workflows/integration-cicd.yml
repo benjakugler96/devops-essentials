@@ -68,10 +68,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: |
-            docker.io/${{ env.IMAGE_NAME }}:v${{ steps.version.outputs.version }}
-          cache-from: type=registry,ref=docker.io/${{ env.IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=docker.io/${{ env.IMAGE_NAME }}:buildcache,mode=max
+          tags: docker.io/${{ env.IMAGE_NAME }}:v${{ steps.version.outputs.version }}
 
   deploy_integration:
     if: github.event_name == 'push'

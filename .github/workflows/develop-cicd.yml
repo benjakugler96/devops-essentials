@@ -40,10 +40,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: |
-            docker.io/${{ env.IMAGE_NAME }}:latest-develop
-          cache-from: type=registry,ref=docker.io/${{ env.IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=docker.io/${{ env.IMAGE_NAME }}:buildcache,mode=max
+          tags: docker.io/${{ env.IMAGE_NAME }}:latest-develop
 
   deploy_develop:
     name: Deploy to Cloud Run (DEV)

@@ -96,19 +96,6 @@ jobs:
           image: docker.io/${{ env.IMAGE_NAME }}:v${{ needs.release_build_push_integration.outputs.version || '' }}
           # We'll pass the version by reading package.json again to be safe
           flags: --allow-unauthenticated
-      - name: Read version (safety)
-        id: v
-        run: echo "v=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
-
-      - name: Re-deploy with exact version (if needed)
-        if: always()
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: ${{ env.CLOUD_RUN_SERVICE_INT }}
-          project_id: ${{ env.GCP_PROJECT_ID }}
-          region: ${{ env.GCP_REGION }}
-          image: docker.io/${{ env.IMAGE_NAME }}:v${{ steps.v.outputs.v }}
-          flags: --allow-unauthenticated
 
       - name: Print INT URL
         run: echo "INT URL => ${{ steps.deploy.outputs.url }}"

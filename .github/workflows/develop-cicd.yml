@@ -2,7 +2,7 @@ name: Develop CI
 on:
   push:
     branches: [develop]
-  workflow_dispatch: # 👈 manual trigger
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -19,10 +19,15 @@ jobs:
     secrets: inherit
     with:
       node-version: '20'
+
   build_push_develop:
     name: Build & Push (develop → latest-develop)
     needs: verify
     runs-on: ubuntu-latest
+
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -36,14 +41,12 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build & Push (latest-develop)
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: |
-            docker.io/${{ env.IMAGE_NAME }}:latest-develop
-          cache-from: type=registry,ref=docker.io/${{ env.IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=docker.io/${{ env.IMAGE_NAME }}:buildcache,mode=max
+          tags: docker.io/${{ env.IMAGE_NAME }}:latest-develop
 
   deploy_develop:
     name: Deploy to Cloud Run (DEV)
@@ -57,6 +60,11 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
+      - name: Echo & Pull image
+        run: |
+          echo "docker.io/${{ env.IMAGE_NAME }}@${{ needs.build_push_develop.outputs.digest }}"
+          docker pull docker.io/${{ env.IMAGE_NAME }}@${{ needs.build_push_develop.outputs.digest }}
+
       - name: Deploy (DEV service)
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
@@ -64,7 +72,7 @@ jobs:
           service: ${{ env.CLOUD_RUN_SERVICE_DEV }}
           project_id: ${{ env.GCP_PROJECT_ID }}
           region: ${{ env.GCP_REGION }}
-          image: docker.io/${{ env.IMAGE_NAME }}:latest-develop
+          image: docker.io/${{ env.IMAGE_NAME }}@${{ needs.build_push_develop.outputs.digest }}
           flags: --allow-unauthenticated
 
       - name: Print DEV URL

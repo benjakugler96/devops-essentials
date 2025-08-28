@@ -1,3 +1,4 @@
+/* eslint-disable no-constant-binary-expression */
 import { useState } from 'react';
 import { FaCode, FaCogs, FaVial, FaCloudUploadAlt } from 'react-icons/fa';
 import './App.css';
@@ -5,6 +6,13 @@ import { version } from '../package.json';
 
 export default function PipelineVisualizer() {
   const [darkMode, setDarkMode] = useState(false);
+
+  const [broken, setBroken] = useState(false); // 🔥 simulate bug
+
+  if (broken) {
+    // This happens in render → ErrorBoundary catches it → UI shows fallback
+    throw new Error('💥 Simulated Dark/Light mode crash!');
+  }
 
   const steps = [
     { label: 'Code', icon: <FaCode />, color: 'blue' },
@@ -15,7 +23,13 @@ export default function PipelineVisualizer() {
 
   return (
     <div className={`pipeline-container ${darkMode ? 'dark' : 'light'}`}>
-      <button className="toggle-btn" onClick={() => setDarkMode(darkMode)}>
+      {false && (
+        <button className="toggle-btn" onClick={() => setDarkMode(!darkMode)}>
+          {darkMode ? '🌞 Light Mode' : '🌙 Dark Mode'}
+        </button>
+      )}
+
+      <button className="toggle-btn" onClick={() => setBroken(true)}>
         {darkMode ? '🌞 Light Mode' : '🌙 Dark Mode'}
       </button>
 

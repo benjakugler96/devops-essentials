@@ -1,4 +1,3 @@
-/* eslint-disable no-constant-binary-expression */
 import { useState } from 'react';
 import { FaCode, FaCogs, FaVial, FaCloudUploadAlt } from 'react-icons/fa';
 import './App.css';

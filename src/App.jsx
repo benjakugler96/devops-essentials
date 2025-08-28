@@ -7,13 +7,6 @@ import { version } from '../package.json';
 export default function PipelineVisualizer() {
   const [darkMode, setDarkMode] = useState(false);
 
-  const [broken, setBroken] = useState(false); // 🔥 simulate bug
-
-  if (broken) {
-    // This happens in render → ErrorBoundary catches it → UI shows fallback
-    throw new Error('💥 Simulated Dark/Light mode crash!');
-  }
-
   const steps = [
     { label: 'Code', icon: <FaCode />, color: 'blue' },
     { label: 'Build', icon: <FaCogs />, color: 'green' },
@@ -29,7 +22,10 @@ export default function PipelineVisualizer() {
         </button>
       )}
 
-      <button className="toggle-btn" onClick={() => setBroken(true)}>
+      <button
+        className="toggle-btn"
+        onClick={() => (window.location.href = `${window.location.href}crash`)}
+      >
         {darkMode ? '🌞 Light Mode' : '🌙 Dark Mode'}
       </button>
 

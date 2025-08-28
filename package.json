@@ -1,7 +1,7 @@
 {
   "name": "devops-essentials",
   "private": true,
-  "version": "latest-develop",
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

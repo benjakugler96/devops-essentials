@@ -1,28 +1,34 @@
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
+import { useState } from 'react';
+import { FaCode, FaCogs, FaVial, FaCloudUploadAlt } from 'react-icons/fa';
 import './App.css';
-import { version } from '../package.json';
 
-function App() {
+export default function PipelineVisualizer() {
+  const [darkMode, setDarkMode] = useState(false);
+
+  const steps = [
+    { label: 'Code', icon: <FaCode />, color: 'blue' },
+    { label: 'Build', icon: <FaCogs />, color: 'green' },
+    { label: 'Test', icon: <FaVial />, color: 'orange' },
+    { label: 'Deploy', icon: <FaCloudUploadAlt />, color: 'purple' },
+  ];
+
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className={`pipeline-container ${darkMode ? 'dark' : 'light'}`}>
+      <button className="toggle-btn" onClick={() => setDarkMode(!darkMode)}>
+        {darkMode ? '🌞 Light Mode' : '🌙 Dark Mode'}
+      </button>
+
+      <div className="pipeline">
+        {steps.map((step, i) => (
+          <div key={i} className="step">
+            <div className={`icon ${step.color}`}>{step.icon}</div>
+            <span className="label">{step.label}</span>
+            {i < steps.length - 1 && <div className="connector" />}
+          </div>
+        ))}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <p>Version: {version}</p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+
+      <p className="footer">🚀 Automating the journey from Code to Cloud</p>
+    </div>
   );
 }
-
-export default App;

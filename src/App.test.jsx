@@ -6,6 +6,8 @@ describe('App', () => {
   it('renders something from the homepage', () => {
     render(<App />);
     // Change the text to whatever your App renders by default
-    expect(screen.getByText('Vite + React')).toBeInTheDocument();
+    expect(
+      screen.getByText('🚀 Automating the journey from Code to Cloud')
+    ).toBeInTheDocument();
   });
 });

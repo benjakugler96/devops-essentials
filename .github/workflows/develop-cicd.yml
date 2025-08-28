@@ -21,7 +21,7 @@ jobs:
       node-version: '20'
 
   build_push_develop:
-    name: Build & Push (develop → latest-develop)
+    name: Build & Push (develop → develop)
     needs: verify
     runs-on: ubuntu-latest
 
@@ -40,13 +40,13 @@ jobs:
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build & Push (latest-develop)
+      - name: Build & Push (develop)
         id: build
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: docker.io/${{ env.IMAGE_NAME }}:latest-develop
+          tags: docker.io/${{ env.IMAGE_NAME }}:develop
 
   deploy_develop:
     name: Deploy to Cloud Run (DEV)

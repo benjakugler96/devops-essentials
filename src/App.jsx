@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FaCode, FaCogs, FaVial, FaCloudUploadAlt } from 'react-icons/fa';
 import './App.css';
+import { version } from '../package.json';
 
 export default function PipelineVisualizer() {
   const [darkMode, setDarkMode] = useState(false);
@@ -14,7 +15,7 @@ export default function PipelineVisualizer() {
 
   return (
     <div className={`pipeline-container ${darkMode ? 'dark' : 'light'}`}>
-      <button className="toggle-btn" onClick={() => setDarkMode(!darkMode)}>
+      <button className="toggle-btn" onClick={() => setDarkMode(darkMode)}>
         {darkMode ? '🌞 Light Mode' : '🌙 Dark Mode'}
       </button>
 
@@ -27,8 +28,8 @@ export default function PipelineVisualizer() {
           </div>
         ))}
       </div>
-
       <p className="footer">🚀 Automating the journey from Code to Cloud</p>
+      <p className="footer">{version}</p>
     </div>
   );
 }

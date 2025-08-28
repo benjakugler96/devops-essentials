@@ -22,7 +22,7 @@ It is a simple **React + Vite** application, served with **Nginx** inside a Dock
 
   - Runs linting and tests.
   - Builds the Docker image.
-  - Pushes the image to Docker Hub with the tag: `latest-develop`
+  - Pushes the image to Docker Hub with the tag: `develop`
   - Deploys the image to **Cloud Run** (development service).
 
 - **`integration`**
@@ -91,7 +91,7 @@ Deployments are automated with GitHub Actions:
 
 The project uses **[release-it](https://github.com/release-it/release-it)** for semantic versioning:
 
-- `develop` → always publishes `latest-develop`.
+- `develop` → always publishes `develop`.
 - `integration` → generates `vX.Y.Z` and publishes to Docker Hub.
 
 ---

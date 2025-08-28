@@ -1,4 +1,3 @@
-/* eslint-disable no-constant-binary-expression */
 import { useState } from 'react';
 import { FaCode, FaCogs, FaVial, FaCloudUploadAlt } from 'react-icons/fa';
 import './App.css';
@@ -16,16 +15,7 @@ export default function PipelineVisualizer() {
 
   return (
     <div className={`pipeline-container ${darkMode ? 'dark' : 'light'}`}>
-      {false && (
-        <button className="toggle-btn" onClick={() => setDarkMode(!darkMode)}>
-          {darkMode ? '🌞 Light Mode' : '🌙 Dark Mode'}
-        </button>
-      )}
-
-      <button
-        className="toggle-btn"
-        onClick={() => (window.location.href = `${window.location.href}crash`)}
-      >
+      <button className="toggle-btn" onClick={() => setDarkMode(!darkMode)}>
         {darkMode ? '🌞 Light Mode' : '🌙 Dark Mode'}
       </button>
 
@@ -39,6 +29,7 @@ export default function PipelineVisualizer() {
         ))}
       </div>
       <p className="footer">🚀 Automating the journey from Code to Cloud</p>
+      <p className="footer">new version</p>
       <p className="footer">{version}</p>
     </div>
   );

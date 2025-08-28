@@ -4,7 +4,7 @@ on:
     branches: [integration]
   push:
     branches: [integration]
-  workflow_dispatch: # 👈 manual trigger
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -27,8 +27,12 @@ jobs:
     name: Release-it (minor) + Build & Push (integration)
     needs: verify
     runs-on: ubuntu-latest
+
+    # Expose version + digest to the deploy job
     outputs:
       version: ${{ steps.version.outputs.version }}
+      digest: ${{ steps.build.outputs.digest }}
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -52,7 +56,8 @@ jobs:
       - name: Run release-it (minor)
         run: npx release-it minor --ci
 
-      - name: Read version
+      # Read version AFTER release-it (ESM-safe)
+      - name: Read version after release-it
         id: version
         shell: bash
         run: |
@@ -69,14 +74,12 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build & Push (v${{ steps.version.outputs.version }})
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: |
-            docker.io/${{ env.IMAGE_NAME }}:v${{ steps.version.outputs.version }}
-          cache-from: type=registry,ref=docker.io/${{ env.IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=docker.io/${{ env.IMAGE_NAME }}:buildcache,mode=max
+          tags: docker.io/${{ env.IMAGE_NAME }}:v${{ steps.version.outputs.version }}
 
   deploy_integration:
     if: github.event_name == 'push'
@@ -86,10 +89,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Ensure version/digest present
+        shell: bash
+        run: |
+          echo "Version from build job: '${{ needs.release_build_push_integration.outputs.version }}'"
+          echo "Digest from build job:  '${{ needs.release_build_push_integration.outputs.digest }}'"
+          if [ -z "${{ needs.release_build_push_integration.outputs.version }}" ] || [ -z "${{ needs.release_build_push_integration.outputs.digest }}" ]; then
+            echo "::error::Missing version or digest from previous job."; exit 1
+          fi
+
       - name: Auth to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Echo & Pull image
+        run: |
+          echo "docker.io/${{ env.IMAGE_NAME }}@${{ needs.release_build_push_integration.outputs.digest }}"
+          docker pull docker.io/${{ env.IMAGE_NAME }}@${{ needs.release_build_push_integration.outputs.digest }}
 
       - name: Deploy (INT service)
         id: deploy
@@ -98,24 +115,7 @@ jobs:
           service: ${{ env.CLOUD_RUN_SERVICE_INT }}
           project_id: ${{ env.GCP_PROJECT_ID }}
           region: ${{ env.GCP_REGION }}
-          image: docker.io/${{ env.IMAGE_NAME }}:v${{ needs.release_build_push_integration.outputs.version || '' }}
-          # We'll pass the version by reading package.json again to be safe
-          flags: --allow-unauthenticated
-      - name: Read version (safety)
-        id: v
-        shell: bash
-        run: |
-          VERSION=$(jq -r .version package.json)
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Re-deploy with exact version (if needed)
-        if: always()
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: ${{ env.CLOUD_RUN_SERVICE_INT }}
-          project_id: ${{ env.GCP_PROJECT_ID }}
-          region: ${{ env.GCP_REGION }}
-          image: docker.io/${{ env.IMAGE_NAME }}:v${{ steps.v.outputs.version }}
+          image: docker.io/${{ env.IMAGE_NAME }}@${{ needs.release_build_push_integration.outputs.digest }}
           flags: --allow-unauthenticated
 
       - name: Print INT URL
